@@ -48,7 +48,7 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
 	 */
 	@Override
 	public boolean saveAndScheduleJob(QuartzJob quartzJob) {
-		if (CommonConstant.STATUS_NORMAL == quartzJob.getStatus()) {
+		if (CommonConstant.STATUS_NORMAL.equals(quartzJob.getStatus())) {
 			// 定时器添加
 			this.schedulerAdd(quartzJob.getJobClassName().trim(), quartzJob.getCronExpression().trim(), quartzJob.getParameter());
 		}
@@ -74,7 +74,7 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
 	 */
 	@Override
 	public boolean editAndScheduleJob(QuartzJob quartzJob) throws SchedulerException {
-		if (CommonConstant.STATUS_NORMAL == quartzJob.getStatus()) {
+		if (CommonConstant.STATUS_NORMAL.equals(quartzJob.getStatus())) {
 			schedulerDelete(quartzJob.getJobClassName().trim());
 			schedulerAdd(quartzJob.getJobClassName().trim(), quartzJob.getCronExpression().trim(), quartzJob.getParameter());
 		}else{
@@ -117,7 +117,9 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
 			scheduler.scheduleJob(jobDetail, trigger);
 		} catch (SchedulerException e) {
 			throw new JeecgBootException("创建定时任务失败", e);
-		} catch (Exception e) {
+		} catch (RuntimeException e) {
+			throw new JeecgBootException(e.getMessage(), e);
+		}catch (Exception e) {
 			throw new JeecgBootException("后台找不到该类名：" + jobClassName, e);
 		}
 	}

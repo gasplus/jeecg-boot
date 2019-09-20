@@ -1,14 +1,13 @@
 package org.jeecg.modules.system.controller;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -20,6 +19,7 @@ import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
+import org.jeecg.modules.message.websocket.WebSocket;
 import org.jeecg.modules.system.entity.SysAnnouncement;
 import org.jeecg.modules.system.entity.SysAnnouncementSend;
 import org.jeecg.modules.system.service.ISysAnnouncementSendService;
@@ -39,7 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -62,6 +62,8 @@ public class SysAnnouncementController {
 	private ISysAnnouncementService sysAnnouncementService;
 	@Autowired
 	private ISysAnnouncementSendService sysAnnouncementSendService;
+	@Resource
+    private WebSocket webSocket;
 
 	/**
 	  * 分页列表查询
@@ -223,6 +225,24 @@ public class SysAnnouncementController {
 			boolean ok = sysAnnouncementService.updateById(sysAnnouncement);
 			if(ok) {
 				result.success("该系统通知发布成功");
+				if(sysAnnouncement.getMsgType().equals(CommonConstant.MSG_TYPE_ALL)) {
+					JSONObject obj = new JSONObject();
+			    	obj.put("cmd", "topic");
+					obj.put("msgId", sysAnnouncement.getId());
+					obj.put("msgTxt", sysAnnouncement.getTitile());
+			    	webSocket.sendAllMessage(obj.toJSONString());
+				}else {
+					// 2.插入用户通告阅读标记表记录
+					String userId = sysAnnouncement.getUserIds();
+					String[] userIds = userId.substring(0, (userId.length()-1)).split(",");
+					String anntId = sysAnnouncement.getId();
+					Date refDate = new Date();
+					JSONObject obj = new JSONObject();
+			    	obj.put("cmd", "user");
+					obj.put("msgId", sysAnnouncement.getId());
+					obj.put("msgTxt", sysAnnouncement.getTitile());
+			    	webSocket.sendMoreMessage(userIds, obj.toJSONString());
+				}
 			}
 		}
 		
@@ -266,9 +286,11 @@ public class SysAnnouncementController {
 		Collection<String> anntIds = sysAnnouncementSendService.queryByUserId(userId);
 		LambdaQueryWrapper<SysAnnouncement> querySaWrapper = new LambdaQueryWrapper<SysAnnouncement>();
 		querySaWrapper.eq(SysAnnouncement::getMsgType,CommonConstant.MSG_TYPE_ALL); // 全部人员
-		querySaWrapper.eq(SysAnnouncement::getDelFlag,CommonConstant.DEL_FLAG_0);  // 未删除
+		querySaWrapper.eq(SysAnnouncement::getDelFlag,CommonConstant.DEL_FLAG_0.toString());  // 未删除
 		querySaWrapper.eq(SysAnnouncement::getSendStatus, CommonConstant.HAS_SEND); //已发布
-		querySaWrapper.notIn(SysAnnouncement::getId, anntIds);
+		if(anntIds!=null&&anntIds.size()>0) {
+			querySaWrapper.notIn(SysAnnouncement::getId, anntIds);
+		}
 		List<SysAnnouncement> announcements = sysAnnouncementService.list(querySaWrapper);
 		if(announcements.size()>0) {
 			for(int i=0;i<announcements.size();i++) {
@@ -311,7 +333,8 @@ public class SysAnnouncementController {
         //导出文件名称
         mv.addObject(NormalExcelConstants.FILE_NAME, "系统通告列表");
         mv.addObject(NormalExcelConstants.CLASS, SysAnnouncement.class);
-        mv.addObject(NormalExcelConstants.PARAMS, new ExportParams("系统通告列表数据", "导出人:Jeecg", "导出信息"));
+        LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+        mv.addObject(NormalExcelConstants.PARAMS, new ExportParams("系统通告列表数据", "导出人:"+user.getRealname(), "导出信息"));
         mv.addObject(NormalExcelConstants.DATA_LIST, pageList);
         return mv;
     }
@@ -337,7 +360,7 @@ public class SysAnnouncementController {
                 List<SysAnnouncement> listSysAnnouncements = ExcelImportUtil.importExcel(file.getInputStream(), SysAnnouncement.class, params);
                 for (SysAnnouncement sysAnnouncementExcel : listSysAnnouncements) {
                 	if(sysAnnouncementExcel.getDelFlag()==null){
-                		sysAnnouncementExcel.setDelFlag("0");
+                		sysAnnouncementExcel.setDelFlag(CommonConstant.DEL_FLAG_0.toString());
 					}
                     sysAnnouncementService.save(sysAnnouncementExcel);
                 }

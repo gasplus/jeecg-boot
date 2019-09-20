@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jeecg.common.constant.CacheConstant;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.system.entity.SysRolePermission;
 import org.jeecg.modules.system.mapper.SysRolePermissionMapper;
@@ -30,12 +31,12 @@ import org.springframework.stereotype.Service;
 public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionMapper, SysRolePermission> implements ISysRolePermissionService {
 
 	@Override
-	@CacheEvict(value="loginUser_cacheRules", allEntries=true)
+	@CacheEvict(value= CacheConstant.LOGIN_USER_RULES_CACHE, allEntries=true)
 	public void saveRolePermission(String roleId, String permissionIds) {
 		LambdaQueryWrapper<SysRolePermission> query = new QueryWrapper<SysRolePermission>().lambda().eq(SysRolePermission::getRoleId, roleId);
 		this.remove(query);
 		List<SysRolePermission> list = new ArrayList<SysRolePermission>();
-		String arr[] = permissionIds.split(",");
+        String[] arr = permissionIds.split(",");
 		for (String p : arr) {
 			if(oConvertUtils.isNotEmpty(p)) {
 				SysRolePermission rolepms = new SysRolePermission(roleId, p);
@@ -46,7 +47,7 @@ public class SysRolePermissionServiceImpl extends ServiceImpl<SysRolePermissionM
 	}
 
 	@Override
-	@CacheEvict(value="loginUser_cacheRules", allEntries=true)
+	@CacheEvict(value= CacheConstant.LOGIN_USER_RULES_CACHE, allEntries=true)
 	public void saveRolePermission(String roleId, String permissionIds, String lastPermissionIds) {
 		List<String> add = getDiff(lastPermissionIds,permissionIds);
 		if(add!=null && add.size()>0) {

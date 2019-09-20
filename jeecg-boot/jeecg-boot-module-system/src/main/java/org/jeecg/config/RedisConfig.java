@@ -2,6 +2,7 @@ package org.jeecg.config;
 
 import java.lang.reflect.Method;
 import java.time.Duration;
+import java.util.Arrays;
 
 import javax.annotation.Resource;
 
@@ -16,13 +17,17 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
+
+import static java.util.Collections.singletonMap;
 
 @Configuration
 @EnableCaching // 开启缓存支持
@@ -36,17 +41,16 @@ public class RedisConfig extends CachingConfigurerSupport {
 	 *              只需要讲注解上keyGenerator的值设置为keyGenerator即可</br>
 	 * @return 自定义策略生成的key
 	 */
+	@Override
 	@Bean
 	public KeyGenerator keyGenerator() {
 		return new KeyGenerator() {
 			@Override
 			public Object generate(Object target, Method method, Object... params) {
-				StringBuffer sb = new StringBuffer();
+				StringBuilder sb = new StringBuilder();
 				sb.append(target.getClass().getName());
-				sb.append(method.getName());
-				for (Object obj : params) {
-					sb.append(obj.toString());
-				}
+				sb.append(method.getDeclaringClass().getName());
+				Arrays.stream(params).map(Object::toString).forEach(sb::append);
 				return sb.toString();
 			}
 		};
@@ -80,21 +84,20 @@ public class RedisConfig extends CachingConfigurerSupport {
 	 */
 	@Bean
 	public CacheManager cacheManager(LettuceConnectionFactory factory) {
+        // 配置序列化
+        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1));
+        RedisCacheConfiguration redisCacheConfiguration = config.serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                												.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+        
 		// 以锁写入的方式创建RedisCacheWriter对象
-		RedisCacheWriter writer = RedisCacheWriter.lockingRedisCacheWriter(factory);
-		/**
-		 * 设置CacheManager的Value序列化方式为JdkSerializationRedisSerializer,
-		 * 但其实RedisCacheConfiguration默认就是使用 StringRedisSerializer序列化key，
-		 * JdkSerializationRedisSerializer序列化value, 所以以下注释代码就是默认实现，没必要写，直接注释掉
-		 */
-		// RedisSerializationContext.SerializationPair pair =
-		// RedisSerializationContext.SerializationPair.fromSerializer(new
-		// JdkSerializationRedisSerializer(this.getClass().getClassLoader()));
-		// RedisCacheConfiguration config =
-		// RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(pair);
+		//RedisCacheWriter writer = RedisCacheWriter.lockingRedisCacheWriter(factory);
 		// 创建默认缓存配置对象
-		RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1)); // 设置缓存有效期一小时;
-		RedisCacheManager cacheManager = new RedisCacheManager(writer, config);
+		/* 默认配置，设置缓存有效期 1小时*/
+		//RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(1));
+		/* 配置test的超时时间为120s*/
+		RedisCacheManager cacheManager = RedisCacheManager.builder(RedisCacheWriter.lockingRedisCacheWriter(factory)).cacheDefaults(redisCacheConfiguration)
+				.withInitialCacheConfigurations(singletonMap("test", RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(120)).disableCachingNullValues()))
+				.transactionAware().build();
 		return cacheManager;
 	}
 

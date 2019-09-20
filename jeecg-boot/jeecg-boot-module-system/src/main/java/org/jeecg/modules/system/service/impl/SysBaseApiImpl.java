@@ -3,6 +3,7 @@ package org.jeecg.modules.system.service.impl;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -19,8 +20,10 @@ import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.IPUtils;
 import org.jeecg.common.util.SpringContextUtils;
 import org.jeecg.common.util.oConvertUtils;
+import org.jeecg.modules.message.websocket.WebSocket;
 import org.jeecg.modules.system.entity.SysAnnouncement;
 import org.jeecg.modules.system.entity.SysAnnouncementSend;
+import org.jeecg.modules.system.entity.SysDict;
 import org.jeecg.modules.system.entity.SysLog;
 import org.jeecg.modules.system.entity.SysUser;
 import org.jeecg.modules.system.mapper.SysAnnouncementMapper;
@@ -32,6 +35,9 @@ import org.jeecg.modules.system.service.ISysDictService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,6 +68,8 @@ public class SysBaseApiImpl implements ISysBaseAPI {
 	private SysAnnouncementMapper sysAnnouncementMapper;
 	@Resource
 	private SysAnnouncementSendMapper sysAnnouncementSendMapper;
+	@Resource
+    private WebSocket webSocket;
 	
 	@Override
 	public void addLog(String LogContent, Integer logType, Integer operatetype) {
@@ -116,7 +124,8 @@ public class SysBaseApiImpl implements ISysBaseAPI {
 
 	@Override
 	public String getDatabaseType() throws SQLException {
-		return getDatabaseType();
+		DataSource dataSource = SpringContextUtils.getApplicationContext().getBean(DataSource.class);
+		return getDatabaseTypeByDataSource(dataSource);
 	}
 
 	@Override
@@ -144,7 +153,7 @@ public class SysBaseApiImpl implements ISysBaseAPI {
 		announcement.setMsgType(CommonConstant.MSG_TYPE_UESR);
 		announcement.setSendStatus(CommonConstant.HAS_SEND);
 		announcement.setSendTime(new Date());
-		announcement.setMsgCategory("2");
+		announcement.setMsgCategory(CommonConstant.MSG_CATEGORY_2);
 		announcement.setDelFlag(String.valueOf(CommonConstant.DEL_FLAG_0));
 		sysAnnouncementMapper.insert(announcement);
 		// 2.插入用户通告阅读标记表记录
@@ -162,8 +171,15 @@ public class SysBaseApiImpl implements ISysBaseAPI {
 				announcementSend.setUserId(sysUser.getId());
 				announcementSend.setReadFlag(CommonConstant.NO_READ_FLAG);
 				sysAnnouncementSendMapper.insert(announcementSend);
+				JSONObject obj = new JSONObject();
+		    	obj.put("cmd", "user");
+		    	obj.put("userId", sysUser.getId());
+				obj.put("msgId", announcement.getId());
+				obj.put("msgTxt", announcement.getTitile());
+		    	webSocket.sendOneMessage(sysUser.getId(), obj.toJSONString());
 			}
 		}
+		
 	}
 	/**
 	 * 获取数据库类型
@@ -172,7 +188,7 @@ public class SysBaseApiImpl implements ISysBaseAPI {
 	 * @throws SQLException
 	 * @throws DBException
 	 */
-	private static String getDatabaseType(DataSource dataSource) throws SQLException{
+	private String getDatabaseTypeByDataSource(DataSource dataSource) throws SQLException{
 		if("".equals(DB_TYPE)) {
 			Connection connection = dataSource.getConnection();
 			try {
@@ -197,5 +213,20 @@ public class SysBaseApiImpl implements ISysBaseAPI {
 		}
 		return DB_TYPE;
 		
+	}
+
+	@Override
+	public List<DictModel> queryAllDict() {
+		// 查询并排序
+		QueryWrapper<SysDict> queryWrapper = new QueryWrapper<SysDict>();
+		queryWrapper.orderByAsc("create_time");
+		List<SysDict> dicts = sysDictService.list(queryWrapper);
+		// 封装成 model
+		List<DictModel> list = new ArrayList<DictModel>();
+		for (SysDict dict : dicts) {
+			list.add(new DictModel(dict.getDictCode(), dict.getDictName()));
+		}
+
+		return list;
 	}
 }
