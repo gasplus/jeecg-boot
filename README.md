@@ -6,7 +6,7 @@
 Jeecg-Boot 快速开发平台（前后端分离版本）
 ===============
 
-当前最新版本： 2.1.0（发布日期：20190826）
+当前最新版本： 2.1.1（发布日期：20191021）
 
 [![AUR](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg)](https://github.com/zhangdaiscott/jeecg-boot/blob/master/LICENSE)
 [![](https://img.shields.io/badge/Author-JEECG团队-orange.svg)](http://www.jeecg.com)
@@ -53,7 +53,7 @@ Jeecg-Boot快速开发平台，可以应用在任何J2EE项目的开发中，尤
 交流互动
 -----------------------------------
 
-- QQ交流群 ：  ①284271917、②769925425
+- QQ交流群 ：  ②769925425、①284271917（满）
 
 - 反馈问题：  [反馈问题，请按格式发Issues](https://github.com/zhangdaiscott/jeecg-boot/issues/new)
 
