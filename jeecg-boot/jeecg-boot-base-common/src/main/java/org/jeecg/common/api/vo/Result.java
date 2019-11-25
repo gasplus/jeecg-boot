@@ -51,7 +51,21 @@ public class Result<T> implements Serializable {
 	public Result() {
 		
 	}
-	
+
+	public Result(boolean success ,int code, T result) {
+		this.success = success;
+		this.code = code;
+		this.result = result;
+	}
+
+	public Result(boolean success ,int code, String message, T result) {
+		this.success = success;
+		this.code = code;
+		this.message = message;
+		this.result = result;
+	}
+
+
 	public Result<T> success(String message) {
 		this.message = message;
 		this.code = CommonConstant.SC_OK_200;
