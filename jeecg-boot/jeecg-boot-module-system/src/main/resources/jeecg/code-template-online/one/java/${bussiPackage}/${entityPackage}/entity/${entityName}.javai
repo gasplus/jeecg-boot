@@ -13,19 +13,24 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.jeecgframework.poi.excel.annotation.Excel;
 import org.jeecg.common.aspect.annotation.Dict;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * @Description: ${tableVo.ftlDescription}
- * @Author: jeecg-boot
+ * @Author: xiahj
  * @Date:   ${.now?string["yyyy-MM-dd"]}
  * @Version: V1.0
  */
 @Data
+@ApiModel(value="${tableVo.ftlDescription}", description="${tableVo.ftlDescription}")
 @TableName("${tableName}")
 public class ${entityName} implements Serializable {
     private static final long serialVersionUID = 1L;
     
     <#list originalColumns as po>
 	/**${po.filedComment}*/
+	@ApiModelProperty(value = "${po.filedComment}")
 	<#if po.fieldName == primaryKeyField>
 	@TableId(type = IdType.ID_WORKER_STR)
 	<#else>

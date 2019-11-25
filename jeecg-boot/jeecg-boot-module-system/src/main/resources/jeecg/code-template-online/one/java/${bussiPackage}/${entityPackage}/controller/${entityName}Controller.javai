@@ -33,12 +33,19 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 import com.alibaba.fastjson.JSON;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+
  /**
  * @Description: ${tableVo.ftlDescription}
- * @Author: jeecg-boot
+ * @Author: xiahj
  * @Date:   ${.now?string["yyyy-MM-dd"]}
  * @Version: V1.0
  */
+ @Api(tags = "${tableVo.ftlDescription}")
 @RestController
 @RequestMapping("/${entityPackage}/${entityName?uncap_first}")
 @Slf4j
@@ -56,6 +63,7 @@ public class ${entityName}Controller extends JeecgController<${entityName}, I${e
 	 * @return
 	 */
 	@GetMapping(value = "/list")
+	@ApiOperation(value = "获取${tableVo.ftlDescription}数据列表", notes = "获取所有${tableVo.ftlDescription}数据列表")
 	public Result<?> queryPageList(${entityName} ${entityName?uncap_first},
 								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
 								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
@@ -72,7 +80,10 @@ public class ${entityName}Controller extends JeecgController<${entityName}, I${e
 	 * @param ${entityName?uncap_first}
 	 * @return
 	 */
+	@RequiresPermissions("${entityPackage}:${entityName}:add")
+	@AutoLog(value = "${tableVo.ftlDescription}-添加")
 	@PostMapping(value = "/add")
+	@ApiOperation(value = "添加${tableVo.ftlDescription}", notes = "添加${tableVo.ftlDescription}")
 	public Result<?> add(@RequestBody ${entityName} ${entityName?uncap_first}) {
 		${entityName?uncap_first}Service.save(${entityName?uncap_first});
 		return Result.ok("添加成功！");
@@ -84,7 +95,10 @@ public class ${entityName}Controller extends JeecgController<${entityName}, I${e
 	 * @param ${entityName?uncap_first}
 	 * @return
 	 */
+	@RequiresPermissions("${entityPackage}:${entityName}:edit")
+	@AutoLog(value = "${tableVo.ftlDescription}-编辑")
 	@PutMapping(value = "/edit")
+	@ApiOperation(value = "编辑${tableVo.ftlDescription}", notes = "编辑${tableVo.ftlDescription}")
 	public Result<?> edit(@RequestBody ${entityName} ${entityName?uncap_first}) {
 		${entityName?uncap_first}Service.updateById(${entityName?uncap_first});
 		return Result.ok("编辑成功!");
@@ -96,7 +110,10 @@ public class ${entityName}Controller extends JeecgController<${entityName}, I${e
 	 * @param id
 	 * @return
 	 */
+	@RequiresPermissions("${entityPackage}:${entityName}:edit")
+	@AutoLog(value = "${tableVo.ftlDescription}-通过id删除")
 	@DeleteMapping(value = "/delete")
+	@ApiOperation(value = "通过ID删除${tableVo.ftlDescription}", notes = "通过ID删除${tableVo.ftlDescription}")
 	public Result<?> delete(@RequestParam(name="id",required=true) String id) {
 		${entityName?uncap_first}Service.removeById(id);
 		return Result.ok("删除成功!");
@@ -108,7 +125,10 @@ public class ${entityName}Controller extends JeecgController<${entityName}, I${e
 	 * @param ids
 	 * @return
 	 */
+	@RequiresPermissions("${entityPackage}:${entityName}:edit")
+	@AutoLog(value = "${tableVo.ftlDescription}-批量删除")
 	@DeleteMapping(value = "/deleteBatch")
+	@ApiOperation(value = "批量删除${tableVo.ftlDescription}", notes = "批量删除${tableVo.ftlDescription}")
 	public Result<?> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
 		this.${entityName?uncap_first}Service.removeByIds(Arrays.asList(ids.split(",")));
 		return Result.ok("批量删除成功!");
@@ -120,7 +140,9 @@ public class ${entityName}Controller extends JeecgController<${entityName}, I${e
 	 * @param id
 	 * @return
 	 */
+	@AutoLog(value = "${tableVo.ftlDescription}-通过id查询")
 	@GetMapping(value = "/queryById")
+	@ApiOperation(value = "通过ID查询${tableVo.ftlDescription}", notes = "通过ID查询${tableVo.ftlDescription}")
 	public Result<?> queryById(@RequestParam(name="id",required=true) String id) {
 		${entityName} ${entityName?uncap_first} = ${entityName?uncap_first}Service.getById(id);
 		if(${entityName?uncap_first}==null) {
@@ -135,7 +157,9 @@ public class ${entityName}Controller extends JeecgController<${entityName}, I${e
     * @param request
     * @param ${entityName?uncap_first}
     */
-    @RequestMapping(value = "/exportXls")
+    @RequiresPermissions("${entityPackage}:${entityName}:edit")
+    @GetMapping(value = "/exportXls")
+    @ApiOperation(value = "导出excel", notes = "导出excel")
     public ModelAndView exportXls(HttpServletRequest request, ${entityName} ${entityName?uncap_first}) {
         return super.exportXls(request, ${entityName?uncap_first}, ${entityName}.class, "${tableVo.ftlDescription}");
     }
@@ -147,7 +171,9 @@ public class ${entityName}Controller extends JeecgController<${entityName}, I${e
     * @param response
     * @return
     */
-    @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
+    @RequiresPermissions("${entityPackage}:${entityName}:edit")
+    @PostMapping(value = "/importExcel")
+    @ApiOperation(value = "导入excel", notes = "导入excel")
     public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {
         return super.importExcel(request, response, ${entityName}.class);
     }
