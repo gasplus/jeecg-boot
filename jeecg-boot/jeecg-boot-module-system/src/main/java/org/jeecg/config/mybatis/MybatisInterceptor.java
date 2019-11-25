@@ -14,12 +14,16 @@ import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
 import org.apache.shiro.SecurityUtils;
+import org.jeecg.common.constant.ApiConstant;
 import org.jeecg.common.system.vo.LoginUser;
+import org.jeecg.common.util.HttpContextUtils;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.system.entity.SysUser;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * mybatis拦截器，自动注入创建人、创建时间、修改人、修改时间
@@ -54,6 +58,10 @@ public class MybatisInterceptor implements Interceptor {
 					LoginUser sysUser = null;
 					try{
 						sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+						if(sysUser==null){
+							HttpServletRequest request =	HttpContextUtils.getHttpServletRequest();
+							sysUser=(LoginUser)request.getAttribute(ApiConstant.LOGIN_USER_KEY);
+						}
 					}catch (Exception e){
 						sysUser = null;
 					}
