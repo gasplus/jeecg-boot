@@ -14,7 +14,9 @@ import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
 import org.apache.shiro.SecurityUtils;
+import org.jeecg.common.constant.ApiConstant;
 import org.jeecg.common.system.vo.LoginUser;
+import org.jeecg.common.util.HttpContextUtils;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.system.entity.SysUser;
 import org.springframework.stereotype.Component;
@@ -156,6 +158,9 @@ public class MybatisInterceptor implements Interceptor {
 		LoginUser sysUser = null;
 		try {
 			sysUser = SecurityUtils.getSubject().getPrincipal() != null ? (LoginUser) SecurityUtils.getSubject().getPrincipal() : null;
+			if(sysUser==null){
+				sysUser=(LoginUser) HttpContextUtils.getHttpServletRequest().getAttribute(ApiConstant.LOGIN_USER_KEY);
+			}
 		} catch (Exception e) {
 			//e.printStackTrace();
 			sysUser = null;

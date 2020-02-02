@@ -56,6 +56,9 @@ public class Swagger2Config implements WebMvcConfigurer {
 	 */
 	@Bean
 	public Docket createRestApi() {
+		List<SecurityScheme> securitySchemes = new ArrayList<>();
+		securitySchemes.add(securityScheme());
+		securitySchemes.add(securityMemberScheme());
 		return new Docket(DocumentationType.SWAGGER_2)
 				.apiInfo(apiInfo())
 				.select()
@@ -65,7 +68,7 @@ public class Swagger2Config implements WebMvcConfigurer {
 	            .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
 				.paths(PathSelectors.any())
 				.build()
-				.securitySchemes(Collections.singletonList(securityScheme()));
+				.securitySchemes(securitySchemes);
 				//.globalOperationParameters(setHeaderToken());
 	}
 
@@ -78,6 +81,12 @@ public class Swagger2Config implements WebMvcConfigurer {
 	@Bean
 	SecurityScheme securityScheme() {
 		return new ApiKey(DefContants.X_ACCESS_TOKEN, DefContants.X_ACCESS_TOKEN, "header");
+	}
+
+	@Bean
+	SecurityScheme securityMemberScheme() {
+		String key="X-Member-OpenId";
+		return new ApiKey(key,key, "header");
 	}
 	/**
 	 * JWT token

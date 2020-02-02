@@ -1,5 +1,6 @@
 package org.jeecg.config;
 
+import com.baomidou.mybatisplus.extension.plugins.OptimisticLockerInterceptor;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +32,13 @@ public class MybatisPlusConfig {
 //    public PerformanceInterceptor performanceInterceptor() {
 //        return new PerformanceInterceptor();
 //    }
-    
-   
+
+    /**
+     *启用乐观锁
+     * @return
+     */
+    @Bean
+    public OptimisticLockerInterceptor optimisticLockerInterceptor() {
+        return new OptimisticLockerInterceptor();
+    }
 }
