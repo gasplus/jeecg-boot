@@ -1,15 +1,12 @@
 package org.jeecg.modules.system.controller;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import io.swagger.annotations.ApiOperation;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.jeecg.common.api.vo.Result;
@@ -30,11 +27,7 @@ import org.jeecgframework.poi.excel.view.JeecgEntityExcelView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
@@ -337,4 +330,16 @@ public class SysDepartController {
         }
         return Result.error("文件导入失败！");
     }
+
+	@GetMapping(value = "/queryByIds")
+	@ApiOperation(value = "根据ids获部门信息", notes = "根据ids获部门信息")
+	public Result<Collection<SysDepart>> queryByIds(@RequestParam String userIds) {
+		Result<Collection<SysDepart>> result = new Result<>();
+		String[] userId = userIds.split(",");
+		Collection<String> idList = Arrays.asList(userId);
+		Collection<SysDepart> memberUserGroups = sysDepartService.listByIds(idList);
+		result.setSuccess(true);
+		result.setResult(memberUserGroups);
+		return result;
+	}
 }

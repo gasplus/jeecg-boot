@@ -321,7 +321,12 @@
 			<artifactId>aliyun-sdk-oss</artifactId>
 			<version>${aliyun.oss.version}</version>
 		</dependency>
-
+		<!-- https://mvnrepository.com/artifact/net.coobird/thumbnailator -->
+		<dependency>
+			<groupId>net.coobird</groupId>
+			<artifactId>thumbnailator</artifactId>
+			<version>0.4.8</version>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
@@ -338,6 +343,9 @@
 				<artifactId>qiniu-java-sdk</artifactId>
 				<version>7.2.23</version>
 			</dependency>
+
+
+
 		</dependencies>
 	</dependencyManagement>
 	<build>

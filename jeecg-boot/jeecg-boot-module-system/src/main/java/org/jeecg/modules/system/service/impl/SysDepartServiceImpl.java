@@ -200,6 +200,15 @@ public class SysDepartServiceImpl extends ServiceImpl<SysDepartMapper, SysDepart
 		this.removeByIds(idList);
 
 	}
+
+	@Override
+	public SysDepart queryDepartsBySysOrg(String sysOrg) {
+		LambdaQueryWrapper<SysDepart> query = new LambdaQueryWrapper<SysDepart>();
+		query.eq(SysDepart::getOrgCode,sysOrg);
+		SysDepart sysDepart = super.getOne(query);
+		return sysDepart;
+	}
+
 	/**
 	 * <p>
 	 * 根据关键字搜索相关的部门数据

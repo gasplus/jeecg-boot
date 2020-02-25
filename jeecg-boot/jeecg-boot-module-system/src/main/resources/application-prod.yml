@@ -137,6 +137,10 @@ jeecg :
     upload: /opt/jeecg-boot/upload
     #webapp文件路径
     webapp: /opt/jeecg-boot/webapp
+    #图片宽高控制
+    img:
+      width: 1000
+      height: 800
   #短信秘钥
   sms:
      accessKeyId: LTAIpW4gUG7xYDNI

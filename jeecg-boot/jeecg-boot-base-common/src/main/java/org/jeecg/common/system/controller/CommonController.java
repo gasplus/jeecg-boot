@@ -1,5 +1,6 @@
 package org.jeecg.common.system.controller;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,9 +10,14 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import cn.hutool.core.io.FileTypeUtil;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.lang.UUID;
+import net.coobird.thumbnailator.Thumbnails;
 import org.jeecg.common.api.vo.Result;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.AntPathMatcher;
@@ -43,6 +49,14 @@ public class CommonController {
 	@Value(value = "${jeecg.path.upload}")
 	private String uploadpath;
 
+
+	@Value(value = "${jeecg.path.img.width}")
+	private int width;
+
+	@Value(value = "${jeecg.path.img.height}")
+	private int height;
+
+
 	/**
 	 * @Author 政辉
 	 * @return
@@ -51,7 +65,7 @@ public class CommonController {
 	public Result<?> noauth()  {
 		return Result.error("没有权限，请联系管理员授权");
 	}
-	
+
 	@PostMapping(value = "/upload")
 	public Result<?> upload(HttpServletRequest request, HttpServletResponse response) {
 		Result<?> result = new Result<>();
@@ -65,12 +79,19 @@ public class CommonController {
 				file.mkdirs();// 创建文件根目录
 			}
 			MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-			MultipartFile mf = multipartRequest.getFile("file");// 获取上传文件对象
-			String orgName = mf.getOriginalFilename();// 获取文件名
+			// 获取上传文件对象
+			MultipartFile mf = multipartRequest.getFile("file");
+			// 获取文件名
+			String orgName = mf.getOriginalFilename();
 			fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.indexOf("."));
 			String savePath = file.getPath() + File.separator + fileName;
 			File savefile = new File(savePath);
 			FileCopyUtils.copy(mf.getBytes(), savefile);
+			BufferedImage bufferedImage = ImageIO.read(savefile);
+			//如果不为空说明是图片
+			if(bufferedImage!=null){
+				Thumbnails.of(savefile).size(width,height).toFile(savefile);
+			}
 			String dbpath = bizPath + File.separator + nowday + File.separator + fileName;
 			if (dbpath.contains("\\")) {
 				dbpath = dbpath.replace("\\", "/");

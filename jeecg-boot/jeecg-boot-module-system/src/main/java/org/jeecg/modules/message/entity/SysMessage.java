@@ -57,4 +57,9 @@ public class SysMessage extends JeecgEntity {
 	/**备注*/
 	@Excel(name = "备注", width = 15)
 	private java.lang.String remark;
+
+	/**
+	 * 是否已经阅读（默认值未阅读）
+	 */
+	private Integer isRead;
 }

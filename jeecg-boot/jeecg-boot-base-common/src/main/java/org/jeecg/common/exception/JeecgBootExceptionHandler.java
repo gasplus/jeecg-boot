@@ -1,19 +1,28 @@
 package org.jeecg.common.exception;
 
+import cn.hutool.core.util.StrUtil;
 import io.lettuce.core.RedisConnectionException;
 import org.apache.shiro.authz.AuthorizationException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.jeecg.common.api.vo.Result;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.connection.PoolException;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 异常处理器
@@ -103,4 +112,32 @@ public class JeecgBootExceptionHandler {
         return Result.error("Redis 连接异常!");
     }
 
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public Result<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+		StringBuilder errMsg = new StringBuilder();
+		BindingResult bindResult =e.getBindingResult();
+		List<FieldError> fieldErrorList = bindResult.getFieldErrors();
+		fieldErrorList.forEach(fieldErrors -> {
+					FieldError fieldError = fieldErrors;
+					if (StrUtil.isNotBlank(errMsg.toString())) {
+						errMsg.append(",");
+					}
+					errMsg.append(fieldError.getDefaultMessage());
+				}
+		);
+		log.error("参数异常错误："+e.getMessage(), e);
+		return Result.error(errMsg.toString());
+	}
+
+	/**
+	 * 参数绑定错误
+	 * @param e
+	 * @return
+	 */
+	@ExceptionHandler(BindException.class)
+	public Result<?> handleBindException(BindException e) {
+		String errMsg = e.getBindingResult().getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.joining());
+		log.error("参数异常错误："+e.getMessage(), e);
+		return Result.error(errMsg.toString());
+	}
 }

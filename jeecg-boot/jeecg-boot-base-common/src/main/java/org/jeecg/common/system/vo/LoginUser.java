@@ -90,4 +90,9 @@ public class LoginUser {
 	 */
 	private Date createTime;
 
+	/**
+	 * tenantId
+	 */
+	private String tenantId;
+
 }
