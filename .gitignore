@@ -1,8 +1,10 @@
-*.class
-target/
-
-# IDEA metadata and output dirs
+## ide
+**/.idea
 *.iml
-*.ipr
-*.iws
-.idea/
+
+## backend
+**/target
+**/logs
+
+## front
+**/*.lock
