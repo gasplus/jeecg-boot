@@ -183,3 +183,7 @@ cas:
 logging:
   level:
     org.jeecg.modules.system.mapper : debug
+
+summer:
+  swagger:
+    enable: false #启用swagger文档，生产的时候务必关掉

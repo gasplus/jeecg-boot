@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import io.swagger.annotations.ApiOperation;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CacheConstant;
@@ -42,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * 部门表 前端控制器
  * <p>
- * 
+ *
  * @Author: Steve @Since： 2019-01-22
  */
 @RestController
@@ -63,7 +64,7 @@ public class SysDepartController {
 		Result<List<SysDepartTreeModel>> result = new Result<>();
 		LoginUser user = (LoginUser) SecurityUtils.getSubject().getPrincipal();
 		try {
-			if(oConvertUtils.isNotEmpty(user.getIdentity()) && user.getIdentity() == CommonConstant.USER_IDENTITY_2 ){
+			if(oConvertUtils.isNotEmpty(user.getIdentity()) && user.getIdentity() .equals(CommonConstant.USER_IDENTITY_2)  ){
 				List<SysDepartTreeModel> list = sysDepartService.queryMyDeptTreeList(user.getDepartIds());
 				result.setResult(list);
 				result.setMessage(CommonConstant.USER_IDENTITY_2.toString());
@@ -80,7 +81,7 @@ public class SysDepartController {
 
 	/**
 	 * 查询数据 查出所有部门,并以树结构数据格式响应给前端
-	 * 
+	 *
 	 * @return
 	 */
 	@RequestMapping(value = "/queryTreeList", method = RequestMethod.GET)
@@ -103,10 +104,11 @@ public class SysDepartController {
 
 	/**
 	 * 添加新数据 添加用户新建的部门对象数据,并保存到数据库
-	 * 
+	 *
 	 * @param sysDepart
 	 * @return
 	 */
+	@RequiresPermissions("sys:sysDepart:add")
 	@RequestMapping(value = "/add", method = RequestMethod.POST)
 	@CacheEvict(value= {CacheConstant.SYS_DEPARTS_CACHE,CacheConstant.SYS_DEPART_IDS_CACHE}, allEntries=true)
 	public Result<SysDepart> add(@RequestBody SysDepart sysDepart, HttpServletRequest request) {
@@ -128,10 +130,11 @@ public class SysDepartController {
 
 	/**
 	 * 编辑数据 编辑部门的部分数据,并保存到数据库
-	 * 
+	 *
 	 * @param sysDepart
 	 * @return
 	 */
+	@RequiresPermissions("sys:sysDepart:add")
 	@RequestMapping(value = "/edit", method = RequestMethod.PUT)
 	@CacheEvict(value= {CacheConstant.SYS_DEPARTS_CACHE,CacheConstant.SYS_DEPART_IDS_CACHE}, allEntries=true)
 	public Result<SysDepart> edit(@RequestBody SysDepart sysDepart, HttpServletRequest request) {
@@ -153,12 +156,13 @@ public class SysDepartController {
 		}
 		return result;
 	}
-	
+
 	 /**
      *   通过id删除
     * @param id
     * @return
     */
+	 @RequiresPermissions("sys:sysDepart:add")
     @RequestMapping(value = "/delete", method = RequestMethod.DELETE)
 	@CacheEvict(value= {CacheConstant.SYS_DEPARTS_CACHE,CacheConstant.SYS_DEPART_IDS_CACHE}, allEntries=true)
    public Result<SysDepart> delete(@RequestParam(name="id",required=true) String id) {
@@ -182,10 +186,11 @@ public class SysDepartController {
 
 	/**
 	 * 批量删除 根据前端请求的多个ID,对数据库执行删除相关部门数据的操作
-	 * 
+	 *
 	 * @param ids
 	 * @return
 	 */
+	@RequiresPermissions("sys:sysDepart:add")
 	@RequestMapping(value = "/deleteBatch", method = RequestMethod.DELETE)
 	@CacheEvict(value= {CacheConstant.SYS_DEPARTS_CACHE,CacheConstant.SYS_DEPART_IDS_CACHE}, allEntries=true)
 	public Result<SysDepart> deleteBatch(@RequestParam(name = "ids", required = true) String ids) {
@@ -202,7 +207,7 @@ public class SysDepartController {
 
 	/**
 	 * 查询数据 添加或编辑页面对该方法发起请求,以树结构形式加载所有部门的名称,方便用户的操作
-	 * 
+	 *
 	 * @return
 	 */
 	@RequestMapping(value = "/queryIdTree", method = RequestMethod.GET)
@@ -236,12 +241,12 @@ public class SysDepartController {
 		}
 		return result;
 	}
-	 
+
 	/**
 	 * <p>
 	 * 部门搜索功能方法,根据关键字模糊搜索相关部门
 	 * </p>
-	 * 
+	 *
 	 * @param keyWord
 	 * @return
 	 */
@@ -264,6 +269,7 @@ public class SysDepartController {
      *
      * @param request
      */
+	@RequiresPermissions("sys:sysDepart:add")
     @RequestMapping(value = "/exportXls")
     public ModelAndView exportXls(SysDepart sysDepart,HttpServletRequest request) {
         // Step.1 组装查询条件
@@ -294,6 +300,7 @@ public class SysDepartController {
      * @param response
      * @return
      */
+	@RequiresPermissions("sys:sysDepart:add")
     @RequestMapping(value = "/importExcel", method = RequestMethod.POST)
 	@CacheEvict(value= {CacheConstant.SYS_DEPARTS_CACHE,CacheConstant.SYS_DEPART_IDS_CACHE}, allEntries=true)
     public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {

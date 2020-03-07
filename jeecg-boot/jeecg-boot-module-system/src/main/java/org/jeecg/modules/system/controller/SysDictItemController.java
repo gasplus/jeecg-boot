@@ -6,6 +6,7 @@ import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CacheConstant;
 import org.jeecg.common.system.query.QueryGenerator;
@@ -41,7 +42,7 @@ public class SysDictItemController {
 
 	@Autowired
 	private ISysDictItemService sysDictItemService;
-	
+
 	/**
 	 * @功能：查询字典数据
 	 * @param sysDictItem
@@ -50,6 +51,7 @@ public class SysDictItemController {
 	 * @param req
 	 * @return
 	 */
+	@RequiresPermissions("sys:dictItem:view")
 	@RequestMapping(value = "/list", method = RequestMethod.GET)
 	public Result<IPage<SysDictItem>> queryPageList(SysDictItem sysDictItem,@RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
 									  @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,HttpServletRequest req) {
@@ -62,12 +64,13 @@ public class SysDictItemController {
 		result.setResult(pageList);
 		return result;
 	}
-	
+
 	/**
 	 * @功能：新增
-	 * @param sysDict
+	 * @param
 	 * @return
 	 */
+	@RequiresPermissions("sys:dictItem:add")
 	@RequestMapping(value = "/add", method = RequestMethod.POST)
 	@CacheEvict(value= CacheConstant.SYS_DICT_CACHE, allEntries=true)
 	public Result<SysDictItem> add(@RequestBody SysDictItem sysDictItem) {
@@ -82,12 +85,13 @@ public class SysDictItemController {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * @功能：编辑
 	 * @param sysDictItem
 	 * @return
 	 */
+	@RequiresPermissions("sys:dictItem:add")
 	@RequestMapping(value = "/edit", method = RequestMethod.PUT)
 	@CacheEvict(value=CacheConstant.SYS_DICT_CACHE, allEntries=true)
 	public Result<SysDictItem> edit(@RequestBody SysDictItem sysDictItem) {
@@ -105,12 +109,13 @@ public class SysDictItemController {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * @功能：删除字典数据
 	 * @param id
 	 * @return
 	 */
+	@RequiresPermissions("sys:dictItem:add")
 	@RequestMapping(value = "/delete", method = RequestMethod.DELETE)
 	@CacheEvict(value=CacheConstant.SYS_DICT_CACHE, allEntries=true)
 	public Result<SysDictItem> delete(@RequestParam(name="id",required=true) String id) {
@@ -126,12 +131,13 @@ public class SysDictItemController {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * @功能：批量删除字典数据
 	 * @param ids
 	 * @return
 	 */
+	@RequiresPermissions("sys:dictItem:add")
 	@RequestMapping(value = "/deleteBatch", method = RequestMethod.DELETE)
 	@CacheEvict(value=CacheConstant.SYS_DICT_CACHE, allEntries=true)
 	public Result<SysDictItem> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
@@ -144,5 +150,5 @@ public class SysDictItemController {
 		}
 		return result;
 	}
-	
+
 }

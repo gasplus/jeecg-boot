@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CacheConstant;
@@ -71,13 +72,13 @@ import lombok.extern.slf4j.Slf4j;
 public class SysRoleController {
 	@Autowired
 	private ISysRoleService sysRoleService;
-	
+
 	@Autowired
 	private ISysPermissionDataRuleService sysPermissionDataRuleService;
-	
+
 	@Autowired
 	private ISysRolePermissionService sysRolePermissionService;
-	
+
 	@Autowired
 	private ISysPermissionService sysPermissionService;
 
@@ -89,6 +90,7 @@ public class SysRoleController {
 	 * @param req
 	 * @return
 	 */
+	@RequiresPermissions("sys:role:view")
 	@RequestMapping(value = "/list", method = RequestMethod.GET)
 	public Result<IPage<SysRole>> queryPageList(SysRole role,
 									  @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
@@ -102,12 +104,13 @@ public class SysRoleController {
 		result.setResult(pageList);
 		return result;
 	}
-	
+
 	/**
 	  *   添加
 	 * @param role
 	 * @return
 	 */
+	@RequiresPermissions("sys:role:add")
 	@RequestMapping(value = "/add", method = RequestMethod.POST)
 	public Result<SysRole> add(@RequestBody SysRole role) {
 		Result<SysRole> result = new Result<SysRole>();
@@ -121,12 +124,13 @@ public class SysRoleController {
 		}
 		return result;
 	}
-	
+
 	/**
 	  *  编辑
 	 * @param role
 	 * @return
 	 */
+	@RequiresPermissions("sys:role:add")
 	@RequestMapping(value = "/edit", method = RequestMethod.PUT)
 	public Result<SysRole> edit(@RequestBody SysRole role) {
 		Result<SysRole> result = new Result<SysRole>();
@@ -141,26 +145,28 @@ public class SysRoleController {
 				result.success("修改成功!");
 			}
 		}
-		
+
 		return result;
 	}
-	
+
 	/**
 	  *   通过id删除
 	 * @param id
 	 * @return
 	 */
+	@RequiresPermissions("sys:role:add")
 	@RequestMapping(value = "/delete", method = RequestMethod.DELETE)
 	public Result<?> delete(@RequestParam(name="id",required=true) String id) {
 		sysRoleService.deleteRole(id);
 		return Result.ok("删除角色成功");
 	}
-	
+
 	/**
 	  *  批量删除
 	 * @param ids
 	 * @return
 	 */
+	@RequiresPermissions("sys:role:add")
 	@RequestMapping(value = "/deleteBatch", method = RequestMethod.DELETE)
 	public Result<SysRole> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
 		Result<SysRole> result = new Result<SysRole>();
@@ -172,12 +178,13 @@ public class SysRoleController {
 		}
 		return result;
 	}
-	
+
 	/**
 	  * 通过id查询
 	 * @param id
 	 * @return
 	 */
+	@RequiresPermissions("sys:role:view")
 	@RequestMapping(value = "/queryById", method = RequestMethod.GET)
 	public Result<SysRole> queryById(@RequestParam(name="id",required=true) String id) {
 		Result<SysRole> result = new Result<SysRole>();
@@ -190,7 +197,7 @@ public class SysRoleController {
 		}
 		return result;
 	}
-	
+
 	@RequestMapping(value = "/queryall", method = RequestMethod.GET)
 	public Result<List<SysRole>> queryall() {
 		Result<List<SysRole>> result = new Result<>();
@@ -203,7 +210,7 @@ public class SysRoleController {
 		}
 		return result;
 	}
-	
+
 	/**
 	  * 校验角色编码唯一
 	 */
@@ -246,6 +253,7 @@ public class SysRoleController {
 	 * 导出excel
 	 * @param request
 	 */
+	@RequiresPermissions("sys:role:add")
 	@RequestMapping(value = "/exportXls")
 	public ModelAndView exportXls(SysRole sysRole,HttpServletRequest request) {
 		// Step.1 组装查询条件
@@ -268,6 +276,7 @@ public class SysRoleController {
 	 * @param response
 	 * @return
 	 */
+	@RequiresPermissions("sys:role:add")
 	@RequestMapping(value = "/importExcel", method = RequestMethod.POST)
 	public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {
 		MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
@@ -293,7 +302,7 @@ public class SysRoleController {
 		}
 		return Result.error("文件导入失败！");
 	}
-	
+
 	/**
 	 * 查询数据规则数据
 	 */
@@ -322,7 +331,7 @@ public class SysRoleController {
 			//TODO 以后按钮权限的查询也走这个请求 无非在map中多加两个key
 		}
 	}
-	
+
 	/**
 	 * 保存数据规则至角色菜单关联表
 	 */
@@ -349,13 +358,14 @@ public class SysRoleController {
 		}
 		return Result.ok("保存成功!");
 	}
-	
-	
+
+
 	/**
 	 * 用户角色授权功能，查询菜单权限树
 	 * @param request
 	 * @return
 	 */
+	@RequiresPermissions("sys:role:view")
 	@RequestMapping(value = "/queryTreeList", method = RequestMethod.GET)
 	public Result<Map<String,Object>> queryTreeList(HttpServletRequest request) {
 		Result<Map<String,Object>> result = new Result<>();
@@ -381,7 +391,7 @@ public class SysRoleController {
 		}
 		return result;
 	}
-	
+
 	private void getTreeModelList(List<TreeModel> treeList,List<SysPermission> metaList,TreeModel temp) {
 		for (SysPermission permission : metaList) {
 			String tempPid = permission.getParentId();
@@ -397,9 +407,9 @@ public class SysRoleController {
 					getTreeModelList(treeList, metaList, tree);
 				}
 			}
-			
+
 		}
 	}
-	
-	
+
+
 }

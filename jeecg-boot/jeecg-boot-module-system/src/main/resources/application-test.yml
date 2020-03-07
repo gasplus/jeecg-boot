@@ -170,3 +170,7 @@ jeecg :
 #cas单点登录
 cas:
   prefixUrl: http://cas.example.org:8443/cas
+
+summer:
+  swagger:
+    enable: false #启用swagger文档，生产的时候务必关掉

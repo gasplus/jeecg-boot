@@ -1,5 +1,6 @@
 package org.jeecg.common.system.controller;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,9 +10,15 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.lang.UUID;
+import cn.hutool.core.util.StrUtil;
+import net.coobird.thumbnailator.Thumbnails;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.system.api.ISysBaseAPI;
@@ -85,6 +92,8 @@ public class CommonController {
 		Result<?> result = new Result<>();
 		String savePath = "";
 		String bizPath = request.getParameter("biz");
+		//是否为缩放
+		String scaleFlag = request.getParameter("scaleFlag");
 		MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
 		MultipartFile file = multipartRequest.getFile("file");// 获取上传文件对象
 		if(oConvertUtils.isEmpty(bizPath)){
@@ -97,7 +106,7 @@ public class CommonController {
 			}
 		}
 		if(CommonConstant.UPLOAD_TYPE_LOCAL.equals(uploadType)){
-			savePath = this.uploadLocal(file,bizPath);
+			savePath = this.uploadLocal(file,bizPath,scaleFlag);
 		}else{
 			savePath = sysBaseAPI.upload(file,bizPath,uploadType);
 		}
@@ -117,29 +126,33 @@ public class CommonController {
 	 * @param bizPath  自定义路径
 	 * @return
 	 */
-	private String uploadLocal(MultipartFile mf,String bizPath){
+	private String uploadLocal(MultipartFile mf,String bizPath,String scaleFlag){
 		try {
 			String ctxPath = uploadpath;
 			String fileName = null;
-			File file = new File(ctxPath + File.separator + bizPath + File.separator );
+			String nowDay = DateUtil.format(new Date(), DatePattern.PURE_DATE_PATTERN);
+			File file = new File(ctxPath + File.separator + bizPath + File.separator+nowDay );
 			if (!file.exists()) {
 				file.mkdirs();// 创建文件根目录
 			}
 			String orgName = mf.getOriginalFilename();// 获取文件名
-			fileName = orgName.substring(0, orgName.lastIndexOf(".")) + "_" + System.currentTimeMillis() + orgName.substring(orgName.indexOf("."));
+			fileName = UUID.randomUUID().toString()+ "_" + System.currentTimeMillis() + orgName.substring(orgName.indexOf("."));
 			String savePath = file.getPath() + File.separator + fileName;
 			File savefile = new File(savePath);
 			FileCopyUtils.copy(mf.getBytes(), savefile);
 			String dbpath = null;
 			if(oConvertUtils.isNotEmpty(bizPath)){
-				dbpath = bizPath + File.separator + fileName;
+				dbpath = bizPath + File.separator +nowDay+ File.separator + fileName;
 			}else{
-				dbpath = fileName;
+				dbpath =nowDay+ File.separator + fileName;
 			}
-			BufferedImage bufferedImage = ImageIO.read(savefile);
-			//如果不为空说明是图片
-			if(bufferedImage!=null){
-				Thumbnails.of(savefile).size(width,height).toFile(savefile);
+			//特殊处理，如果图片路径为imgScale，则进行缩放
+			if("true".equals(scaleFlag)){
+				BufferedImage bufferedImage = ImageIO.read(savefile);
+				//如果不为空说明是图片
+				if(bufferedImage!=null){
+					Thumbnails.of(savefile).size(width,height).toFile(savefile);
+				}
 			}
 			if (dbpath.contains("\\")) {
 				dbpath = dbpath.replace("\\", "/");

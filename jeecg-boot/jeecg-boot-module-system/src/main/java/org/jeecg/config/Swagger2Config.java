@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.jeecg.modules.shiro.vo.DefContants;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -34,12 +35,13 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @Configuration
 @EnableSwagger2
 @EnableSwaggerBootstrapUI
+@ConditionalOnProperty(prefix="summer",name = "swagger.enable", havingValue = "true")
 public class Swagger2Config implements WebMvcConfigurer {
 
 	/**
 	 *
 	 * 显示swagger-ui.html文档展示页，还必须注入swagger资源：
-	 * 
+	 *
 	 * @param registry
 	 */
 	@Override

@@ -105,4 +105,9 @@ public class LoginUser {
 	 */
 	private String tenantId;
 
+	/**
+	 * depId
+	 */
+	private String depId;
+
 }

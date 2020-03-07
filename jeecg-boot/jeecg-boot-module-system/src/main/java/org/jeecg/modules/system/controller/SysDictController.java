@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CacheConstant;
 import org.jeecg.common.constant.CommonConstant;
@@ -72,6 +73,7 @@ public class SysDictController {
 	@Autowired
 	public RedisTemplate<String, Object> redisTemplate;
 
+	@RequiresPermissions("sys:dict:list")
 	@RequestMapping(value = "/list", method = RequestMethod.GET)
 	public Result<IPage<SysDict>> queryPageList(SysDict sysDict,@RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
 									  @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,HttpServletRequest req) {
@@ -133,7 +135,7 @@ public class SysDictController {
 			if(dictCode.indexOf(",")!=-1) {
 				//关联表字典（举例：sys_user,realname,id）
 				String[] params = dictCode.split(",");
-				
+
 				if(params.length<3) {
 					result.error500("字典Code格式不正确！");
 					return result;
@@ -141,7 +143,7 @@ public class SysDictController {
 				//SQL注入校验（只限制非法串改数据库）
 				final String[] sqlInjCheck = {params[0],params[1],params[2]};
 				SqlInjectionUtil.filterContent(sqlInjCheck);
-				
+
 				if(params.length==4) {
 					//SQL注入校验（查询条件SQL 特殊check，此方法仅供此处使用）
 					SqlInjectionUtil.specialFilterContent(params[3]);
@@ -196,6 +198,7 @@ public class SysDictController {
 	 * @param sysDict
 	 * @return
 	 */
+	@RequiresPermissions("sys:dict:add")
 	@RequestMapping(value = "/add", method = RequestMethod.POST)
 	public Result<SysDict> add(@RequestBody SysDict sysDict) {
 		Result<SysDict> result = new Result<SysDict>();
@@ -216,6 +219,7 @@ public class SysDictController {
 	 * @param sysDict
 	 * @return
 	 */
+	@RequiresPermissions("sys:dict:add")
 	@RequestMapping(value = "/edit", method = RequestMethod.PUT)
 	public Result<SysDict> edit(@RequestBody SysDict sysDict) {
 		Result<SysDict> result = new Result<SysDict>();
@@ -237,6 +241,7 @@ public class SysDictController {
 	 * @param id
 	 * @return
 	 */
+	@RequiresPermissions("sys:dict:add")
 	@RequestMapping(value = "/delete", method = RequestMethod.DELETE)
 	@CacheEvict(value=CacheConstant.SYS_DICT_CACHE, allEntries=true)
 	public Result<SysDict> delete(@RequestParam(name="id",required=true) String id) {
@@ -255,6 +260,7 @@ public class SysDictController {
 	 * @param ids
 	 * @return
 	 */
+	@RequiresPermissions("sys:dict:add")
 	@RequestMapping(value = "/deleteBatch", method = RequestMethod.DELETE)
 	@CacheEvict(value= CacheConstant.SYS_DICT_CACHE, allEntries=true)
 	public Result<SysDict> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
@@ -272,6 +278,7 @@ public class SysDictController {
 	 * @功能：刷新缓存
 	 * @return
 	 */
+	@RequiresPermissions("sys:dict:add")
 	@RequestMapping(value = "/refleshCache")
 	public Result<?> refleshCache() {
 		Result<?> result = new Result<SysDict>();
@@ -292,6 +299,7 @@ public class SysDictController {
 	 *
 	 * @param request
 	 */
+	@RequiresPermissions("sys:dict:add")
 	@RequestMapping(value = "/exportXls")
 	public ModelAndView exportXls(SysDict sysDict,HttpServletRequest request) {
 		// Step.1 组装查询条件
@@ -329,6 +337,7 @@ public class SysDictController {
 	 * @param
 	 * @return
 	 */
+	@RequiresPermissions("sys:dict:add")
 	@RequestMapping(value = "/importExcel", method = RequestMethod.POST)
 	public Result<?> importExcel(HttpServletRequest request, HttpServletResponse response) {
 		MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
@@ -363,9 +372,9 @@ public class SysDictController {
 		}
 		return Result.error("文件导入失败！");
 	}
-	
+
 	/**
-	 * 大数据量的字典表 走异步加载  即前端输入内容过滤数据 
+	 * 大数据量的字典表 走异步加载  即前端输入内容过滤数据
 	 * @param dictCode
 	 * @return
 	 */
@@ -396,7 +405,7 @@ public class SysDictController {
 
 		return result;
 	}
-	
+
 	/**
 	 * 根据字典code加载字典text 返回
 	 */
@@ -426,7 +435,7 @@ public class SysDictController {
 
 		return result;
 	}
-	
+
 	/**
 	 * 根据表名——显示字段-存储字段 pid 加载树形数据
 	 */
@@ -468,6 +477,7 @@ public class SysDictController {
 	 * @param id
 	 * @return
 	 */
+	@RequiresPermissions("sys:dict:add")
 	@RequestMapping(value = "/deletePhysic/{id}", method = RequestMethod.DELETE)
 	public Result<?> deletePhysic(@PathVariable String id) {
 		try {
